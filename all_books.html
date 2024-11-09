@@ -194,29 +194,38 @@
     }
 
 
-        function displayBooks(books) {
-            const tableBody = document.getElementById('booksTableBody');
-            tableBody.innerHTML = '';
-            books.forEach(book => {
-                const row = document.createElement('tr');
-                row.classList.add('book-row');
-                row.dataset.bookId = book.id;
-                row.innerHTML = `
-                    <td>${book.id}</td>
-                    <td>${book.title}</td>
-                    <td>${book.author}</td>
-                    <td>${book.published_year}</td>
-                    <td>${book.book_type}</td>
-                    <td>${book.isActive ? 'Available' : 'Unavailable'}</td>
-                    <td>
-                        <button class="btn btn-warning btn-sm" onclick="updateBook(${book.id})" ${!isAdmin ? 'disabled' : ''}>Update</button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteBook(${book.id})" ${!isAdmin ? 'disabled' : ''}>Delete</button>
-                    </td>
-                `;
+    function displayBooks(books) {
+    const tableBody = document.getElementById('booksTableBody');
+    tableBody.innerHTML = '';
+    books.forEach(book => {
+        const row = document.createElement('tr');
+        row.classList.add('book-row');
+        row.dataset.bookId = book.id;
+        row.innerHTML = `
+            <td>${book.id}</td>
+            <td>${book.title}</td>
+            <td>${book.author}</td>
+            <td>${book.published_year}</td>
+            <td>${book.book_type}</td>
+            <td>${book.isActive ? 'Available' : 'Unavailable'}</td>
+            <td>
+                <button class="btn btn-warning btn-sm" onclick="updateBook(${book.id})" ${!isAdmin ? 'disabled' : ''}>Update</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteBook(${book.id})" ${!isAdmin ? 'disabled' : ''}>Delete</button>
+            </td>
+        `;
 
-                tableBody.appendChild(row);
-            });
-        }
+        // Add click event to navigate to show_book.html with the book ID
+        row.addEventListener('click', (event) => {
+            // Prevent the event from triggering if clicking on action buttons
+            if (!event.target.closest('button')) {
+                window.location.href = `show_book.html?bookId=${book.id}`;
+            }
+        });
+
+        tableBody.appendChild(row);
+    });
+}
+
 
         async function getUserInfo() {
             try {
