@@ -1,174 +1,193 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Loan and Return Books</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container mt-5">
-        <h2 id="welcomeMessage" class="text-center"></h2>
-        
-        <h2 class="mb-4">Loan a Book</h2>
-        <form id="loanForm" class="mb-4">
-            <div class="mb-3">
-                <label for="bookTitle" class="form-label">Book Title</label>
-                <select class="form-select" id="bookTitle" required>
-                    <option selected disabled>Choose a book</option>
-                </select>
-            </div>
-            <button type="submit" class="btn btn-primary">Loan Book</button>
-        </form>
+      <h2 id="welcomeMessage" class="text-center"></h2>
 
-        <h2 class="mb-4">Return a Book</h2>
-        <form id="returnForm" class="mb-4">
-            <div class="mb-3">
-                <label for="loanedBookTitle" class="form-label">Loaned Book Title</label>
-                <select class="form-select" id="loanedBookTitle" required>
-                    <option selected disabled>Choose a loaned book</option>
-                </select>
-            </div>
-            <button type="submit" class="btn btn-success">Return Book</button>
-        </form>
-
-        <!-- Late Loans Section -->
-        <h2 class="mb-4 text-danger">Your Late Loans</h2>
-        <div id="lateLoansContainer" class="mb-4">
-            <p id="noLateLoans" class="text-muted">You have no late loans.</p>
-            <ul id="lateLoansList" class="list-group"></ul>
+      <h2 class="mb-4">Loan a Book</h2>
+      <form id="loanForm" class="mb-4">
+        <div class="mb-3">
+          <label for="bookTitle" class="form-label">Book Title</label>
+          <select class="form-select" id="bookTitle" required>
+            <option selected disabled>Choose a book</option>
+          </select>
         </div>
+        <button type="submit" class="btn btn-primary">Loan Book</button>
+      </form>
+
+      <h2 class="mb-4">Return a Book</h2>
+      <form id="returnForm" class="mb-4">
+        <div class="mb-3">
+          <label for="loanedBookTitle" class="form-label"
+            >Loaned Book Title</label
+          >
+          <select class="form-select" id="loanedBookTitle" required>
+            <option selected disabled>Choose a loaned book</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-success">Return Book</button>
+      </form>
+
+      <!-- Late Loans Section -->
+      <h2 class="mb-4 text-danger">Your Late Loans</h2>
+      <div id="lateLoansContainer" class="mb-4">
+        <p id="noLateLoans" class="text-muted">You have no late loans.</p>
+        <ul id="lateLoansList" class="list-group"></ul>
+      </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/jwt-decode/build/jwt-decode.min.js"></script>
     <script>
-        const api = axios.create({
-            baseURL: 'http://127.0.0.1:8000',
-            headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
-        });
+      const api = axios.create({
+        baseURL: 'http://127.0.0.1:8000',
+        headers: { Authorization: 'Bearer ' + localStorage.getItem('token') },
+      })
 
-        const token = localStorage.getItem('token');
-        const decoded = jwt_decode(token);
-        const customerId = decoded.user_id;
+      const token = localStorage.getItem('token')
+      const decoded = jwt_decode(token)
+      const customerId = decoded.user_id
 
-        // Fetch logged-in user's information and update the title
-        async function fetchUserAndOptions() {
-            try {
-                const userResponse = await api.get(`/customers/customer/${customerId}/`);
-                const username = userResponse.data.username;
+      // Fetch logged-in user's information and update the title
+      async function fetchUserAndOptions() {
+        try {
+          const userResponse = await api.get(
+            `/customers/customer/${customerId}/`
+          )
+          const username = userResponse.data.username
 
-                document.getElementById('welcomeMessage').textContent = `Welcome, ${username}`;
-                document.title = `Loan and Return Books - ${username}`;
+          document.getElementById(
+            'welcomeMessage'
+          ).textContent = `Welcome, ${username}`
+          document.title = `Loan and Return Books - ${username}`
 
-                await fetchOptions();
-                await fetchLateLoans(); // Fetch late loans on page load
-            } catch (error) {
-                console.error('Error fetching user information or options:', error);
-            }
+          await fetchOptions()
+          await fetchLateLoans() // Fetch late loans on page load
+        } catch (error) {
+          console.error('Error fetching user information or options:', error)
         }
+      }
 
-        async function fetchOptions() {
-            try {
-                const [booksResponse, loansResponse] = await Promise.all([
-                    api.get('/loans/display_books'),
-                    api.get(`/loans/customer/${customerId}`)
-                ]);
+      async function fetchOptions() {
+        try {
+          const [booksResponse, loansResponse] = await Promise.all([
+            api.get('/loans/display_books'),
+            api.get(`/loans/customer/${customerId}`),
+          ])
 
-                populateBookOptions(booksResponse.data);
-                populateLoanedBooksOptions(loansResponse.data.active_loans);
-            } catch (error) {
-                console.error('Error fetching options:', error);
-            }
+          populateBookOptions(booksResponse.data)
+          populateLoanedBooksOptions(loansResponse.data.active_loans)
+        } catch (error) {
+          console.error('Error fetching options:', error)
         }
+      }
 
-        // Fetch late loans
-        async function fetchLateLoans() {
-            try {
-                const lateLoansResponse = await api.get(`/loans/late_loans/${customerId}`);
-                const lateLoans = lateLoansResponse.data;
+      // Fetch late loans
+      async function fetchLateLoans() {
+        try {
+          const lateLoansResponse = await api.get(
+            `/loans/late_loans/${customerId}`
+          )
+          const lateLoans = lateLoansResponse.data
 
-                if (lateLoans.length === 0) {
-                    document.getElementById('noLateLoans').style.display = 'block';
-                    document.getElementById('lateLoansList').innerHTML = '';
-                } else {
-                    document.getElementById('noLateLoans').style.display = 'none';
-                    populateLateLoans(lateLoans);
-                }
-            } catch (error) {
-                console.error('Error fetching late loans:', error);
-            }
+          if (lateLoans.length === 0) {
+            document.getElementById('noLateLoans').style.display = 'block'
+            document.getElementById('lateLoansList').innerHTML = ''
+          } else {
+            document.getElementById('noLateLoans').style.display = 'none'
+            populateLateLoans(lateLoans)
+          }
+        } catch (error) {
+          console.error('Error fetching late loans:', error)
         }
+      }
 
-        function populateBookOptions(books) {
-            const bookSelect = document.getElementById('bookTitle');
-            bookSelect.innerHTML = '<option selected disabled>Choose a book</option>';
-            books.forEach(book => {
-                if (book.isActive) {
-                    const option = document.createElement('option');
-                    option.value = book.id;
-                    option.textContent = book.title;
-                    bookSelect.appendChild(option);
-                }
-            });
+      function populateBookOptions(books) {
+        const bookSelect = document.getElementById('bookTitle')
+        bookSelect.innerHTML =
+          '<option selected disabled>Choose a book</option>'
+        books.forEach((book) => {
+          if (book.isActive) {
+            const option = document.createElement('option')
+            option.value = book.id
+            option.textContent = book.title
+            bookSelect.appendChild(option)
+          }
+        })
+      }
+
+      function populateLoanedBooksOptions(activeLoans) {
+        const loanedBookSelect = document.getElementById('loanedBookTitle')
+        loanedBookSelect.innerHTML =
+          '<option selected disabled>Choose a loaned book</option>'
+        activeLoans.forEach((loan) => {
+          const option = document.createElement('option')
+          option.value = loan.id
+          option.textContent = `${loan.book.title}`
+          loanedBookSelect.appendChild(option)
+        })
+      }
+
+      function populateLateLoans(lateLoans) {
+        const lateLoansList = document.getElementById('lateLoansList')
+        lateLoansList.innerHTML = ''
+        lateLoans.forEach((loan) => {
+          const listItem = document.createElement('li')
+          listItem.className = 'list-group-item list-group-item-danger'
+          listItem.textContent = `Title: ${
+            loan.book.title
+          }, Due Date: ${new Date(loan.due_date).toLocaleDateString()}`
+          lateLoansList.appendChild(listItem)
+        })
+      }
+
+      async function loanBook(event) {
+        event.preventDefault()
+        const bookId = document.getElementById('bookTitle').value
+
+        try {
+          await api.post('/loans/loan_book', {
+            book_id: bookId,
+            customer_id: customerId,
+          })
+          alert('Book loaned successfully!')
+          document.getElementById('loanForm').reset()
+          fetchOptions()
+        } catch (error) {
+          console.error('Error loaning book:', error)
         }
+      }
 
-        function populateLoanedBooksOptions(activeLoans) {
-            const loanedBookSelect = document.getElementById('loanedBookTitle');
-            loanedBookSelect.innerHTML = '<option selected disabled>Choose a loaned book</option>';
-            activeLoans.forEach(loan => {
-                const option = document.createElement('option');
-                option.value = loan.id;
-                option.textContent = `${loan.book.title}`;
-                loanedBookSelect.appendChild(option);
-            });
+      async function returnBook(event) {
+        event.preventDefault()
+        const loanedBookId = document.getElementById('loanedBookTitle').value
+
+        try {
+          await api.post('/loans/return_book', { loan_id: loanedBookId })
+          alert('Book returned successfully!')
+          document.getElementById('returnForm').reset()
+          fetchOptions()
+        } catch (error) {
+          console.error('Error returning book:', error)
         }
+      }
 
-        function populateLateLoans(lateLoans) {
-            const lateLoansList = document.getElementById('lateLoansList');
-            lateLoansList.innerHTML = '';
-            lateLoans.forEach(loan => {
-                const listItem = document.createElement('li');
-                listItem.className = 'list-group-item list-group-item-danger';
-                listItem.textContent = `Title: ${loan.book.title}, Due Date: ${new Date(loan.due_date).toLocaleDateString()}`;
-                lateLoansList.appendChild(listItem);
-            });
-        }
+      document.getElementById('loanForm').addEventListener('submit', loanBook)
+      document
+        .getElementById('returnForm')
+        .addEventListener('submit', returnBook)
 
-        async function loanBook(event) {
-            event.preventDefault();
-            const bookId = document.getElementById('bookTitle').value;
-
-            try {
-                await api.post('/loans/loan_book', { book_id: bookId, customer_id: customerId });
-                alert('Book loaned successfully!');
-                document.getElementById('loanForm').reset();
-                fetchOptions();
-            } catch (error) {
-                console.error('Error loaning book:', error);
-            }
-        }
-
-        async function returnBook(event) {
-            event.preventDefault();
-            const loanedBookId = document.getElementById('loanedBookTitle').value;
-
-            try {
-                await api.post('/loans/return_book', { loan_id: loanedBookId });
-                alert('Book returned successfully!');
-                document.getElementById('returnForm').reset();
-                fetchOptions();
-            } catch (error) {
-                console.error('Error returning book:', error);
-            }
-        }
-
-        document.getElementById('loanForm').addEventListener('submit', loanBook);
-        document.getElementById('returnForm').addEventListener('submit', returnBook);
-
-        // Fetch user info, options, and late loans on page load
-        fetchUserAndOptions();
-
+      // Fetch user info, options, and late loans on page load
+      fetchUserAndOptions()
     </script>
-</body>
+  </body>
 </html>

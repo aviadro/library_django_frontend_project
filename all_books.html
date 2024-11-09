@@ -1,207 +1,247 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Library Books</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <style>
-        .book-row:hover {
-            background-color: #f1f1f1;
-            cursor: pointer;
-        }
+      .book-row:hover {
+        background-color: #f1f1f1;
+        cursor: pointer;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container mt-5">
-        <h2 class="mb-4">Library Books</h2>
+      <h2 class="mb-4">Library Books</h2>
 
-        <!-- Search form for finding books by name -->
-        <div class="input-group mb-4">
-            <input type="text" id="searchInput" class="form-control" placeholder="Search by book title...">
-            <button class="btn btn-primary" onclick="searchBook()">Search</button>
-            <button class="btn btn-secondary" onclick="fetchBooks()">Clear Search</button>
-        </div>
+      <!-- Search form for finding books by name -->
+      <div class="input-group mb-4">
+        <input
+          type="text"
+          id="searchInput"
+          class="form-control"
+          placeholder="Search by book title..."
+        />
+        <button class="btn btn-primary" onclick="searchBook()">Search</button>
+        <button class="btn btn-secondary" onclick="fetchBooks()">
+          Clear Search
+        </button>
+      </div>
 
-        <!-- Table for displaying books -->
-        <table class="table table-striped" id="booksTable">
-            <thead class="table-dark">
-                <tr>
-                    <th scope="col">ID</th>
-                    <th scope="col">Title</th>
-                    <th scope="col">Author</th>
-                    <th scope="col">Published Year</th>
-                    <th scope="col">Type</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Actions</th>
-                </tr>
-            </thead>
-            <tbody id="booksTableBody">
-                <!-- Book rows will be populated here -->
-            </tbody>
+      <!-- Table for displaying books -->
+      <table class="table table-striped" id="booksTable">
+        <thead class="table-dark">
+          <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Title</th>
+            <th scope="col">Author</th>
+            <th scope="col">Published Year</th>
+            <th scope="col">Type</th>
+            <th scope="col">Status</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="booksTableBody">
+          <!-- Book rows will be populated here -->
+        </tbody>
+      </table>
+
+      <!-- Section for displaying late loans if any -->
+      <h2 class="mt-5 mb-4">Late Loans</h2>
+      <div id="lateLoansSection" class="d-none">
+        <table class="table table-striped">
+          <thead class="table-danger">
+            <tr>
+              <th scope="col">Loan ID</th>
+              <th scope="col">Book Title</th>
+              <th scope="col">Borrower</th>
+              <th scope="col">Loan Date</th>
+              <th scope="col">Due Date</th>
+            </tr>
+          </thead>
+          <tbody id="lateLoansTableBody">
+            <!-- Late loan rows will be populated here -->
+          </tbody>
         </table>
-
-        <!-- Section for displaying late loans if any -->
-        <h2 class="mt-5 mb-4">Late Loans</h2>
-        <div id="lateLoansSection" class="d-none">
-            <table class="table table-striped">
-                <thead class="table-danger">
-                    <tr>
-                        <th scope="col">Loan ID</th>
-                        <th scope="col">Book Title</th>
-                        <th scope="col">Borrower</th>
-                        <th scope="col">Loan Date</th>
-                        <th scope="col">Due Date</th>
-                    </tr>
-                </thead>
-                <tbody id="lateLoansTableBody">
-                    <!-- Late loan rows will be populated here -->
-                </tbody>
-            </table>
-        </div>
-        <p id="noLateLoansMessage" class="text-center d-none">No late loans found.</p>
+      </div>
+      <p id="noLateLoansMessage" class="text-center d-none">
+        No late loans found.
+      </p>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/jwt-decode/build/jwt-decode.min.js"></script>
 
     <script>
-        // Configure Axios instance
-        const api = axios.create({
-            baseURL: 'http://127.0.0.1:8000',
-            headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('token')
-            }
-        });
+      // Configure Axios instance
+      const api = axios.create({
+        baseURL: 'http://127.0.0.1:8000',
+        headers: {
+          Authorization: 'Bearer ' + localStorage.getItem('token'),
+        },
+      })
 
-        // Axios interceptor to handle token refresh on 401 error
-        api.interceptors.response.use(
-            response => response,
-            async (error) => {
-                const originalRequest = error.config;
-                
-                if (error.response && error.response.status === 401 && !originalRequest._retry) {
-                    originalRequest._retry = true;
-                    try {
-                        const refreshToken = localStorage.getItem('refreshToken');
-                        const response = await axios.post('http://127.0.0.1:8000/refresh', {
-                            refresh: refreshToken
-                        });
+      // Axios interceptor to handle token refresh on 401 error
+      api.interceptors.response.use(
+        (response) => response,
+        async (error) => {
+          const originalRequest = error.config
 
-                        localStorage.setItem('token', response.data.access);
-                        originalRequest.headers['Authorization'] = 'Bearer ' + response.data.access;
-                        return api(originalRequest);
-                    } catch (refreshError) {
-                        console.error('Token refresh failed:', refreshError);
-                    }
-                }
-                return Promise.reject(error);
-            }
-        );
-        const token = localStorage.getItem('token');
-        const decoded = jwt_decode(token);
-        const customerId = decoded.user_id;
-        let isAdmin = false;
-
-        async function fetchBooks() {
+          if (
+            error.response &&
+            error.response.status === 401 &&
+            !originalRequest._retry
+          ) {
+            originalRequest._retry = true
             try {
-                const response = await api.get('/loans/display_books');
-                displayBooks(response.data);
-                fetchLateLoans();
-            } catch (error) {
-                console.error('Error fetching books:', error);
+              const refreshToken = localStorage.getItem('refreshToken')
+              const response = await axios.post('http://127.0.0.1:8000/refresh', {
+                refresh: refreshToken,
+              })
+
+              localStorage.setItem('token', response.data.access)
+              originalRequest.headers['Authorization'] =
+                'Bearer ' + response.data.access
+              return api(originalRequest)
+            } catch (refreshError) {
+              console.error('Token refresh failed:', refreshError)
             }
+          }
+          return Promise.reject(error)
         }
+      )
+      const token = localStorage.getItem('token')
+      const decoded = jwt_decode(token)
+      const customerId = decoded.user_id
+      let isAdmin = false
 
-        async function searchBook() {
-            const searchInput = document.getElementById('searchInput').value.trim();
-            if (!searchInput) {
-                alert('Please enter a book title to search.');
-                return;
-            }
-
-            try {
-                const response = await api.get(`/loans/find_book/${encodeURIComponent(searchInput)}`);
-                displayBooks(response.data);
-            } catch (error) {
-                console.error('Error searching for book:', error);
-                if (error.response && error.response.status === 404) {
-                    document.getElementById('booksTableBody').innerHTML = '<tr><td colspan="7" class="text-center">No books found with that title.</td></tr>';
-                }
-            }
+      async function fetchBooks() {
+        try {
+          const response = await api.get('/loans/display_books')
+          displayBooks(response.data)
+          fetchLateLoans()
+        } catch (error) {
+          console.error('Error fetching books:', error)
+          
         }
+      }
 
-        async function fetchLateLoans() {
-            try {
-                const response = await api.get('/loans/late_loans');
-                displayLateLoans(response.data);
-            } catch (error) {
-                console.error('Error fetching late loans:', error);
-                document.getElementById('lateLoansSection').classList.add('d-none');
-                document.getElementById('noLateLoansMessage').classList.remove('d-none');
-            }
-        }
-
-        async function deleteBook(bookId) {
-            console.log("***")
-            if (!isAdmin) {
-                alert("You do not have permission to delete books.");
-                return;
-            }
-
-            try {
-                const response = await api.delete(`/loans/remove_book/${bookId}/`);
-                alert(response.data.message);
-                fetchBooks();
-            } catch (error) {
-                console.error("Error deleting book:", error);
-                alert(error.response?.data?.error || "Failed to delete the book.");
-            }
-        }
-
-        async function updateBook(bookId) {
-        if (!isAdmin) {
-            alert("You do not have permission to update books.");
-            return;
-        }
-
-        // Prompt for each field, allowing empty values if the field should not be updated
-        const title = prompt("Enter new title (leave empty to keep current):");
-        const author = prompt("Enter new author (leave empty to keep current):");
-        const publishedYear = prompt("Enter new published year (leave empty to keep current):");
-        const bookType = prompt("Enter new book type (leave empty to keep current):");
-
-        // Create an update object with only the fields that have new values
-        const updateData = {};
-        if (title) updateData.title = title;
-        if (author) updateData.author = author;
-        if (publishedYear) updateData.published_year = publishedYear;
-        if (bookType) updateData.book_type = bookType;
-
-        // Only proceed if there's something to update
-        if (Object.keys(updateData).length === 0) {
-            alert("No changes made to the book.");
-            return;
+      async function searchBook() {
+        const searchInput = document.getElementById('searchInput').value.trim()
+        if (!searchInput) {
+          alert('Please enter a book title to search.')
+          return
         }
 
         try {
-            const response = await api.put(`/loans/update_book/${bookId}/`, updateData);
-            alert("Book updated successfully!");
-            fetchBooks();
+          const response = await api.get(
+            `/loans/find_book/${encodeURIComponent(searchInput)}`
+          )
+          displayBooks(response.data)
         } catch (error) {
-            console.error("Error updating book:", error);
-            alert(error.response?.data?.error || "Failed to update the book.");
+          console.error('Error searching for book:', error)
+          if (error.response && error.response.status === 404) {
+            document.getElementById('booksTableBody').innerHTML =
+              '<tr><td colspan="7" class="text-center">No books found with that title.</td></tr>'
+          }
         }
-    }
+      }
 
+      async function fetchLateLoans() {
+        try {
+          const response = await api.get('/loans/late_loans')
+          displayLateLoans(response.data)
+        } catch (error) {
+          console.error('Error fetching late loans:', error)
+          document.getElementById('lateLoansSection').classList.add('d-none')
+          document
+            .getElementById('noLateLoansMessage')
+            .classList.remove('d-none')
+        }
+      }
 
-    function displayBooks(books) {
-    const tableBody = document.getElementById('booksTableBody');
-    tableBody.innerHTML = '';
-    books.forEach(book => {
-        const row = document.createElement('tr');
-        row.classList.add('book-row');
-        row.dataset.bookId = book.id;
-        row.innerHTML = `
+      async function deleteBook(bookId) {
+        if (!isAdmin) {
+          alert('You do not have permission to delete books.')
+          return
+        }
+
+        try {
+          const response = await api.delete(`/loans/remove_book/${bookId}/`)
+          alert(response.data.message)
+          fetchBooks()
+        } catch (error) {
+          console.error('Error deleting book:', error)
+          alert(error.response?.data?.error || 'Failed to delete the book.')
+        }
+      }
+
+      async function updateBook(bookId) {
+        if (!isAdmin) {
+          alert('You do not have permission to update books.')
+          return
+        }
+
+        // Prompt for each field, allowing empty values if the field should not be updated
+        const title = prompt('Enter new title (leave empty to keep current):')
+        const author = prompt('Enter new author (leave empty to keep current):')
+        const publishedYear = prompt(
+          'Enter new published year (leave empty to keep current):'
+        )
+        const bookType = prompt(
+          'Enter new book type (leave empty to keep current):'
+        )
+
+        // Prompt for availability status, allowing empty values to keep the current status
+        const isAvailableInput = prompt(
+          'Is the book available? (yes to set available, no to set unavailable, leave empty to keep current):'
+        )
+        let isAvailable
+        if (isAvailableInput.toLowerCase() === 'yes') {
+          isAvailable = true
+        } else if (isAvailableInput.toLowerCase() === 'no') {
+          isAvailable = false
+        }
+
+        // Create an update object with only the fields that have new values
+        const updateData = {}
+        if (title) updateData.title = title
+        if (author) updateData.author = author
+        if (publishedYear) updateData.published_year = publishedYear
+        if (bookType) updateData.book_type = bookType
+        if (isAvailable !== undefined) updateData.isActive = isAvailable
+
+        // Only proceed if there's something to update
+        if (Object.keys(updateData).length === 0) {
+          alert('No changes made to the book.')
+          return
+        }
+
+        try {
+          const response = await api.put(
+            `/loans/update_book/${bookId}/`,
+            updateData
+          )
+          alert('Book updated successfully!')
+          fetchBooks()
+        } catch (error) {
+          console.error('Error updating book:', error)
+          alert(error.response?.data?.error || 'Failed to update the book.')
+        }
+      }
+
+      function displayBooks(books) {
+        const tableBody = document.getElementById('booksTableBody')
+        tableBody.innerHTML = ''
+        books.forEach((book) => {
+          const row = document.createElement('tr')
+          row.classList.add('book-row')
+          row.dataset.bookId = book.id
+          row.innerHTML = `
             <td>${book.id}</td>
             <td>${book.title}</td>
             <td>${book.author}</td>
@@ -209,76 +249,77 @@
             <td>${book.book_type}</td>
             <td>${book.isActive ? 'Available' : 'Unavailable'}</td>
             <td>
-                <button class="btn btn-warning btn-sm" onclick="updateBook(${book.id})" ${!isAdmin ? 'disabled' : ''}>Update</button>
-                <button class="btn btn-danger btn-sm" onclick="deleteBook(${book.id})" ${!isAdmin ? 'disabled' : ''}>Delete</button>
+                <button class="btn btn-warning btn-sm" onclick="updateBook(${
+                  book.id
+                })" ${!isAdmin ? 'disabled' : ''}>Update</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteBook(${
+                  book.id
+                })" ${!isAdmin ? 'disabled' : ''}>Delete</button>
             </td>
-        `;
+        `
 
-        // Add click event to navigate to show_book.html with the book ID
-        row.addEventListener('click', (event) => {
+          // Add click event to navigate to show_book.html with the book ID
+          row.addEventListener('click', (event) => {
             // Prevent the event from triggering if clicking on action buttons
             if (!event.target.closest('button')) {
-                window.location.href = `show_book.html?bookId=${book.id}`;
+              window.location.href = `show_book.html?bookId=${book.id}`
             }
-        });
+          })
 
-        tableBody.appendChild(row);
-    });
-}
+          tableBody.appendChild(row)
+        })
+      }
 
-
-        async function getUserInfo() {
-            try {
-                const response = await api.get(`/customers/customer/${customerId}`);
-                isAdmin = response.data.is_staff;
-                console.log("*****",isAdmin)
-                if (isAdmin) {
-                    fetchLateLoans();
-                } else {
-                    fetchCustomerLateLoans(customerId);
-                }
-            } catch (error) {
-                console.error('Error fetching user info:', error);
-            }
+      async function getUserInfo() {
+        try {
+          const response = await api.get(`/customers/customer/${customerId}`)
+          isAdmin = response.data.is_staff
+          if (isAdmin) {
+            fetchLateLoans()
+          } else {
+            fetchCustomerLateLoans(customerId)
+          }
+        } catch (error) {
+          console.error('Error fetching user info:', error)
         }
+      }
 
-        function displayLateLoans(lateLoans) {
-            const lateLoansSection = document.getElementById('lateLoansSection');
-            const noLateLoansMessage = document.getElementById('noLateLoansMessage');
-            const tableBody = document.getElementById('lateLoansTableBody');
+      function displayLateLoans(lateLoans) {
+        const lateLoansSection = document.getElementById('lateLoansSection')
+        const noLateLoansMessage = document.getElementById('noLateLoansMessage')
+        const tableBody = document.getElementById('lateLoansTableBody')
 
-            if (lateLoans.length === 0) {
-                lateLoansSection.classList.add('d-none');
-                noLateLoansMessage.classList.remove('d-none');
-            } else {
-                tableBody.innerHTML = '';
+        if (lateLoans.length === 0) {
+          lateLoansSection.classList.add('d-none')
+          noLateLoansMessage.classList.remove('d-none')
+        } else {
+          tableBody.innerHTML = ''
 
-                lateLoans.forEach(loan => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
+          lateLoans.forEach((loan) => {
+            const row = document.createElement('tr')
+            row.innerHTML = `
                         <td>${loan.id}</td>
                         <td>${loan.book.title}</td>
                         <td>${loan.customer.username}</td>
                         <td>${loan.loan_date}</td>
                         <td>${loan.due_date}</td>
-                    `;
-                    tableBody.appendChild(row);
-                });
+                    `
+            tableBody.appendChild(row)
+          })
 
-                lateLoansSection.classList.remove('d-none');
-                noLateLoansMessage.classList.add('d-none');
-            }
+          lateLoansSection.classList.remove('d-none')
+          noLateLoansMessage.classList.add('d-none')
         }
+      }
 
-        // Fetch books and user info on page load
-        async function init() {
-        await getUserInfo();  // Ensures getUserInfo completes first
-        fetchBooks();         // Now fetchBooks runs with the correct isAdmin value
-        }
+      // Fetch books and user info on page load
+      async function init() {
+        await getUserInfo() // Ensures getUserInfo completes first
+        fetchBooks() // Now fetchBooks runs with the correct isAdmin value
+      }
 
-        // Call init on page load
-        init();
-
+      // Call init on page load
+      init()
     </script>
-</body>
+  </body>
 </html>

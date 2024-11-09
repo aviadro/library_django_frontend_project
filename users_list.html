@@ -1,62 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>User List</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container mt-5">
-        <h2 class="mb-4 text-center">User List</h2>
+      <h2 class="mb-4 text-center">User List</h2>
 
-        <div class="mb-4 text-center">
-            <input type="text" id="searchInput" class="form-control mb-2" placeholder="Search by Name" style="width: 300px; margin: 0 auto;">
-            <button onclick="searchUsers()" class="btn btn-primary">Search</button>
-        </div>
+      <div class="mb-4 text-center">
+        <input
+          type="text"
+          id="searchInput"
+          class="form-control mb-2"
+          placeholder="Search by Name"
+          style="width: 300px; margin: 0 auto"
+        />
+        <button onclick="searchUsers()" class="btn btn-primary">Search</button>
+      </div>
 
-        <table class="table table-striped" id="userTable">
-            <thead class="table-dark">
-                <tr>
-                    <th>ID</th>
-                    <th>Username</th>
-                    <th>Email</th>
-                    <th>City</th>
-                    <th>Age</th>
-                    <th>Phone</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="userTableBody"></tbody>
-        </table>
+      <table class="table table-striped" id="userTable">
+        <thead class="table-dark">
+          <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Email</th>
+            <th>City</th>
+            <th>Age</th>
+            <th>Phone</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="userTableBody"></tbody>
+      </table>
 
-        <div id="responseMessage" class="mt-3 text-center"></div>
+      <div id="responseMessage" class="mt-3 text-center"></div>
     </div>
 
     <script>
-        const api = axios.create({
-            baseURL: 'http://127.0.0.1:8000',
-            headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('token')
-            }
-        });
+      const api = axios.create({
+        baseURL: 'http://127.0.0.1:8000',
+        headers: {
+          Authorization: 'Bearer ' + localStorage.getItem('token'),
+        },
+      })
 
-        async function fetchUsers() {
-            const userTableBody = document.getElementById('userTableBody');
-            const responseMessage = document.getElementById('responseMessage');
+      async function fetchUsers() {
+        const userTableBody = document.getElementById('userTableBody')
+        const responseMessage = document.getElementById('responseMessage')
 
-            userTableBody.innerHTML = '';
-            responseMessage.innerHTML = '';
+        userTableBody.innerHTML = ''
+        responseMessage.innerHTML = ''
 
-            try {
-                const response = await api.get('/customers/display_customers');
-                const users = response.data;
+        try {
+          const response = await api.get('/customers/display_customers')
+          const users = response.data
 
-                users.forEach(user => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
+          users.forEach((user) => {
+            const row = document.createElement('tr')
+            row.innerHTML = `
                         <td>${user.id}</td>
                         <td>${user.username}</td>
                         <td>${user.email}</td>
@@ -65,38 +74,44 @@
                         <td>${user.phone || 'N/A'}</td>
                         <td>${user.is_active ? 'Active' : 'Inactive'}</td>
                         <td>
-                            <button class="btn btn-warning btn-sm" onclick="updateUser(${user.id})">Update</button>
-                            <button class="btn btn-danger btn-sm" onclick="removeUser(${user.id})">Remove</button>
+                            <button class="btn btn-warning btn-sm" onclick="updateUser(${
+                              user.id
+                            })">Update</button>
+                            <button class="btn btn-danger btn-sm" onclick="removeUser(${
+                              user.id
+                            })">Remove</button>
                         </td>
-                    `;
-                    userTableBody.appendChild(row);
-                });
-            } catch (error) {
-                let errorMessage = 'An error occurred while fetching the user list.';
-                if (error.response && error.response.status === 403) {
-                    errorMessage = 'You are not authorized to view this user list.';
-                }
-                responseMessage.innerHTML = `<div class="alert alert-danger">${errorMessage}</div>`;
-            }
+                    `
+            userTableBody.appendChild(row)
+          })
+        } catch (error) {
+          let errorMessage = 'An error occurred while fetching the user list.'
+          if (error.response && error.response.status === 403) {
+            errorMessage = 'You are not authorized to view this user list.'
+          }
+          responseMessage.innerHTML = `<div class="alert alert-danger">${errorMessage}</div>`
         }
+      }
 
-        async function searchUsers() {
-            const searchTerm = document.getElementById('searchInput').value.trim();
-            if (!searchTerm) return fetchUsers();
+      async function searchUsers() {
+        const searchTerm = document.getElementById('searchInput').value.trim()
+        if (!searchTerm) return fetchUsers()
 
-            const userTableBody = document.getElementById('userTableBody');
-            const responseMessage = document.getElementById('responseMessage');
+        const userTableBody = document.getElementById('userTableBody')
+        const responseMessage = document.getElementById('responseMessage')
 
-            userTableBody.innerHTML = '';
-            responseMessage.innerHTML = '';
+        userTableBody.innerHTML = ''
+        responseMessage.innerHTML = ''
 
-            try {
-                const response = await api.get(`/customers/find_customer/${searchTerm}/`);
-                const users = response.data;
+        try {
+          const response = await api.get(
+            `/customers/find_customer/${searchTerm}/`
+          )
+          const users = response.data
 
-                users.forEach(user => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
+          users.forEach((user) => {
+            const row = document.createElement('tr')
+            row.innerHTML = `
                         <td>${user.id}</td>
                         <td>${user.username}</td>
                         <td>${user.email}</td>
@@ -105,56 +120,63 @@
                         <td>${user.phone || 'N/A'}</td>
                         <td>${user.is_active ? 'Active' : 'Inactive'}</td>
                         <td>
-                            <button class="btn btn-warning btn-sm" onclick="updateUser(${user.id})">Update</button>
-                            <button class="btn btn-danger btn-sm" onclick="removeUser(${user.id})">Remove</button>
+                            <button class="btn btn-warning btn-sm" onclick="updateUser(${
+                              user.id
+                            })">Update</button>
+                            <button class="btn btn-danger btn-sm" onclick="removeUser(${
+                              user.id
+                            })">Remove</button>
                         </td>
-                    `;
-                    userTableBody.appendChild(row);
-                });
-            } catch (error) {
-                responseMessage.innerHTML = `<div class="alert alert-danger">No users found with that name.</div>`;
-            }
+                    `
+            userTableBody.appendChild(row)
+          })
+        } catch (error) {
+          responseMessage.innerHTML = `<div class="alert alert-danger">No users found with that name.</div>`
         }
+      }
 
-        async function updateUser(userId) {
-            const newUsername = prompt("Enter new username:");
-            const newEmail = prompt("Enter new email:");
-            const newCity = prompt("Enter new city:");
-            const newAge = prompt("Enter new age:");
-            const newPhone = prompt("Enter new phone:");
-            const isActive = confirm("Set as active user?");
+      async function updateUser(userId) {
+        const newUsername = prompt('Enter new username:')
+        const newEmail = prompt('Enter new email:')
+        const newCity = prompt('Enter new city:')
+        const newAge = prompt('Enter new age:')
+        const newPhone = prompt('Enter new phone:')
+        const isActive = confirm('Set as active user?')
 
-            try {
-                const response = await api.put(`/customers/update_customer/${userId}/`, {
-                    username: newUsername,
-                    email: newEmail,
-                    city: newCity,
-                    age: newAge,
-                    phone: newPhone,
-                    is_active: isActive
-                });
-                alert('User updated successfully!');
-                fetchUsers();
-            } catch (error) {
-                alert('Error updating user.');
-                console.error('Error updating user:', error);
+        try {
+          const response = await api.put(
+            `/customers/update_customer/${userId}/`,
+            {
+              username: newUsername,
+              email: newEmail,
+              city: newCity,
+              age: newAge,
+              phone: newPhone,
+              is_active: isActive,
             }
+          )
+          alert('User updated successfully!')
+          fetchUsers()
+        } catch (error) {
+          alert('Error updating user.')
+          console.error('Error updating user:', error)
         }
+      }
 
-        async function removeUser(userId) {
-            if (!confirm('Are you sure you want to remove this user?')) return;
+      async function removeUser(userId) {
+        if (!confirm('Are you sure you want to remove this user?')) return
 
-            try {
-                await api.delete(`/customers/remove_customer/${userId}/`);
-                alert('User removed successfully!');
-                fetchUsers();
-            } catch (error) {
-                alert('Error removing user.');
-                console.error('Error removing user:', error);
-            }
+        try {
+          await api.delete(`/customers/remove_customer/${userId}/`)
+          alert('User removed successfully!')
+          fetchUsers()
+        } catch (error) {
+          alert('Error removing user.')
+          console.error('Error removing user:', error)
         }
+      }
 
-        fetchUsers();
+      fetchUsers()
     </script>
-</body>
+  </body>
 </html>
