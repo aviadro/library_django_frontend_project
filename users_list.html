@@ -11,36 +11,31 @@
     <div class="container mt-5">
         <h2 class="mb-4 text-center">User List</h2>
 
-        <!-- Search bar for searching by name -->
         <div class="mb-4 text-center">
             <input type="text" id="searchInput" class="form-control mb-2" placeholder="Search by Name" style="width: 300px; margin: 0 auto;">
             <button onclick="searchUsers()" class="btn btn-primary">Search</button>
         </div>
-        
-        <!-- Table to display users -->
+
         <table class="table table-striped" id="userTable">
             <thead class="table-dark">
                 <tr>
-                    <th scope="col">ID</th>
-                    <th scope="col">Username</th>
-                    <th scope="col">Email</th>
-                    <th scope="col">City</th>
-                    <th scope="col">Age</th>
-                    <th scope="col">Phone</th>
-                    <th scope="col">Status</th>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>City</th>
+                    <th>Age</th>
+                    <th>Phone</th>
+                    <th>Status</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
-            <tbody id="userTableBody">
-                <!-- User rows will be populated here -->
-            </tbody>
+            <tbody id="userTableBody"></tbody>
         </table>
 
-        <!-- Response message for error handling -->
         <div id="responseMessage" class="mt-3 text-center"></div>
     </div>
 
     <script>
-        // Configure Axios instance
         const api = axios.create({
             baseURL: 'http://127.0.0.1:8000',
             headers: {
@@ -48,17 +43,15 @@
             }
         });
 
-        // Function to fetch all users
         async function fetchUsers() {
             const userTableBody = document.getElementById('userTableBody');
             const responseMessage = document.getElementById('responseMessage');
 
-            // Clear any previous content
             userTableBody.innerHTML = '';
             responseMessage.innerHTML = '';
 
             try {
-                const response = await api.get('http://127.0.0.1:8000/customers/display_customers');  // Update with your endpoint for listing users
+                const response = await api.get('/customers/display_customers');
                 const users = response.data;
 
                 users.forEach(user => {
@@ -71,6 +64,10 @@
                         <td>${user.age || 'N/A'}</td>
                         <td>${user.phone || 'N/A'}</td>
                         <td>${user.is_active ? 'Active' : 'Inactive'}</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm" onclick="updateUser(${user.id})">Update</button>
+                            <button class="btn btn-danger btn-sm" onclick="removeUser(${user.id})">Remove</button>
+                        </td>
                     `;
                     userTableBody.appendChild(row);
                 });
@@ -83,25 +80,18 @@
             }
         }
 
-        // Function to search users by name
         async function searchUsers() {
             const searchTerm = document.getElementById('searchInput').value.trim();
+            if (!searchTerm) return fetchUsers();
+
             const userTableBody = document.getElementById('userTableBody');
             const responseMessage = document.getElementById('responseMessage');
 
-            // Clear any previous content
             userTableBody.innerHTML = '';
             responseMessage.innerHTML = '';
 
-            if (!searchTerm) {
-                // If no search term is entered, fetch all users
-                fetchUsers();
-                return;
-            }
-
             try {
-                // Make a GET request to search users by name
-                const response = await api.get(`http://127.0.0.1:8000/customers/find_customer/${searchTerm}/`);
+                const response = await api.get(`/customers/find_customer/${searchTerm}/`);
                 const users = response.data;
 
                 users.forEach(user => {
@@ -114,19 +104,56 @@
                         <td>${user.age || 'N/A'}</td>
                         <td>${user.phone || 'N/A'}</td>
                         <td>${user.is_active ? 'Active' : 'Inactive'}</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm" onclick="updateUser(${user.id})">Update</button>
+                            <button class="btn btn-danger btn-sm" onclick="removeUser(${user.id})">Remove</button>
+                        </td>
                     `;
                     userTableBody.appendChild(row);
                 });
             } catch (error) {
-                let errorMessage = 'No users found with that name.';
-                if (error.response && error.response.status === 403) {
-                    errorMessage = 'You are not authorized to search users.';
-                }
-                responseMessage.innerHTML = `<div class="alert alert-danger">${errorMessage}</div>`;
+                responseMessage.innerHTML = `<div class="alert alert-danger">No users found with that name.</div>`;
             }
         }
 
-        // Call the function to fetch users on page load
+        async function updateUser(userId) {
+            const newUsername = prompt("Enter new username:");
+            const newEmail = prompt("Enter new email:");
+            const newCity = prompt("Enter new city:");
+            const newAge = prompt("Enter new age:");
+            const newPhone = prompt("Enter new phone:");
+            const isActive = confirm("Set as active user?");
+
+            try {
+                const response = await api.put(`/customers/update_customer/${userId}/`, {
+                    username: newUsername,
+                    email: newEmail,
+                    city: newCity,
+                    age: newAge,
+                    phone: newPhone,
+                    is_active: isActive
+                });
+                alert('User updated successfully!');
+                fetchUsers();
+            } catch (error) {
+                alert('Error updating user.');
+                console.error('Error updating user:', error);
+            }
+        }
+
+        async function removeUser(userId) {
+            if (!confirm('Are you sure you want to remove this user?')) return;
+
+            try {
+                await api.delete(`/customers/remove_customer/${userId}/`);
+                alert('User removed successfully!');
+                fetchUsers();
+            } catch (error) {
+                alert('Error removing user.');
+                console.error('Error removing user:', error);
+            }
+        }
+
         fetchUsers();
     </script>
 </body>
