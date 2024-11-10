@@ -106,28 +106,30 @@
         </tbody>
       </table>
 
-      <!-- Section for displaying late loans if any -->
-      <h2 class="mt-5 mb-4">Late Loans</h2>
-      <div id="lateLoansSection" class="d-none">
-        <table class="table table-striped">
-          <thead class="table-danger">
-            <tr>
-              <th scope="col">Loan ID</th>
-              <th scope="col">Book Title</th>
-              <th scope="col">Borrower</th>
-              <th scope="col">Loan Date</th>
-              <th scope="col">Due Date</th>
-            </tr>
-          </thead>
-          <tbody id="lateLoansTableBody">
-            <!-- Late loan rows will be populated here -->
-          </tbody>
-        </table>
-      </div>
-      <p id="noLateLoansMessage" class="text-center d-none">
-        No late loans found.
-      </p>
+<!-- Section for displaying late loans if any -->
+<div id="adminLateLoansSection" class="d-none">
+    <h2 class="mt-5 mb-4">Late Loans</h2>
+    <div id="lateLoansSection">
+      <table class="table table-striped">
+        <thead class="table-danger">
+          <tr>
+            <th scope="col">Loan ID</th>
+            <th scope="col">Book Title</th>
+            <th scope="col">Borrower</th>
+            <th scope="col">Loan Date</th>
+            <th scope="col">Due Date</th>
+          </tr>
+        </thead>
+        <tbody id="lateLoansTableBody">
+          <!-- Late loan rows will be populated here -->
+        </tbody>
+      </table>
     </div>
+    <p id="noLateLoansMessage" class="text-center d-none">
+      No late loans found.
+    </p>
+  </div>
+  
     <script src="https://cdn.jsdelivr.net/npm/jwt-decode/build/jwt-decode.min.js"></script>
 
     <script>
@@ -328,13 +330,16 @@
         try {
           const response = await api.get(`/customers/customer/${customerId}`)
           isAdmin = response.data.is_staff
-          if (isAdmin) {
+          const adminLateLoansSection = document.getElementById('adminLateLoansSection')
+            if (isAdmin) {
+            adminLateLoansSection.classList.remove('d-none')
             fetchLateLoans()
-          } else {
+            } else {
+            adminLateLoansSection.classList.add('d-none')
             fetchCustomerLateLoans(customerId)
-          }
+            }
         } catch (error) {
-          console.error('Error fetching user info:', error)
+            console.error('Error fetching user info:', error)
         }
       }
 
