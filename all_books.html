@@ -32,37 +32,31 @@
             <span class="navbar-toggler-icon"></span>
           </button>
           <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ml-auto">
-              <!-- Add Book Option -->
-              <li class="nav-item">
-                <a class="nav-link" href="/add_book.html">Add Book</a>
-              </li>
-              <!-- Loan Book Option -->
-              <li class="nav-item">
-                <a class="nav-link" href="/loaning_books.html">Loan Book</a>
-              </li>
-              <!-- Login Option -->
-              <li class="nav-item">
-                <a class="nav-link" href="/login.html">Login</a>
-              </li>
-              <!-- Register Option -->
-              <li class="nav-item">
-                <a class="nav-link" href="/register.html">Register</a>
-              </li>
-              <!-- Show Loan List Option -->
-              <li class="nav-item">
-                <a class="nav-link" href="/show_loans.html">Show Loan List</a>
-              </li>
-              <!-- Show Users List Option -->
-              <li class="nav-item">
-                <a class="nav-link" href="/users_list.html">Show Users List</a>
-              </li>
-              <!-- Show all books -->
-              <li class="nav-item">
-                <a class="nav-link" href="/all_books.html">All Books</a>
-              </li>
-            </ul>
-          </div>
+          <ul class="navbar-nav ml-auto">
+            <!-- Navbar items -->
+            <li class="nav-item">
+              <a class="nav-link" href="/login.html">Login</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/register.html">Register</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/all_books.html">Our Book List</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/loaning_books.html">Loan Book</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/add_book.html">Add Book</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/show_loans.html">Show Loan List</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/users_list.html">Show Users List</a>
+            </li>
+          </ul>
+        </div>
         </div>
       </nav>
     <div class="container mt-5">
@@ -81,7 +75,19 @@
           Clear Search
         </button>
       </div>
-
+      <div class="card mb-4">
+        <div class="card-body">
+          <h5 class="card-title">Book Loan Duration</h5>
+          <p class="card-text">
+            <ul class="list-unstyled">
+              <li><strong>Type 1:</strong> Available for up to 10 days.</li>
+              <li><strong>Type 2:</strong> Available for up to 5 days.</li>
+              <li><strong>Type 3:</strong> Available for up to 2 days.</li>
+            </ul>
+          </p>
+        </div>
+      </div>
+      
       <!-- Table for displaying books -->
       <table class="table table-striped" id="booksTable">
         <thead class="table-dark">
