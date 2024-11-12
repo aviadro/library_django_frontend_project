@@ -114,7 +114,7 @@
 
         try {
           const response = await axios.get(
-            `http://127.0.0.1:8000/loans/display_book/${bookId}/`,
+            `https://library-django-backend-project.onrender.com/loans/display_book/${bookId}/`,
             {
               headers: {
                 Authorization: 'Bearer ' + localStorage.getItem('token'),
@@ -128,7 +128,7 @@
             // Populate book details
             document.getElementById(
               'book-image'
-            ).src = `http://127.0.0.1:8000/${book.image || 'placeholder.png'}`;
+            ).src = `https://library-django-backend-project.onrender.com/${book.image || 'placeholder.png'}`;
             document.getElementById('book-title').textContent = book.title;
             document.getElementById(
               'book-author'

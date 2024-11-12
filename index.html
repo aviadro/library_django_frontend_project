@@ -144,7 +144,7 @@
     <script>
       // Configure Axios instance
       const api = axios.create({
-        baseURL: 'http://127.0.0.1:8000',
+        baseURL: 'https://library-django-backend-project.onrender.com',
         headers: {
           Authorization: 'Bearer ' + localStorage.getItem('token'),
         },
@@ -164,7 +164,7 @@
             originalRequest._retry = true
             try {
               const refreshToken = localStorage.getItem('refreshToken')
-              const response = await axios.post('http://127.0.0.1:8000/refresh', {
+              const response = await axios.post('https://library-django-backend-project.onrender.com/refresh', {
                 refresh: refreshToken,
               })
 

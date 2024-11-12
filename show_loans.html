@@ -161,7 +161,7 @@
       document.addEventListener('DOMContentLoaded', async () => {
         try {
           const response = await axios.get(
-            'http://127.0.0.1:8000/loans/display_loans',
+            'https://library-django-backend-project.onrender.com/loans/display_loans',
             {
               headers: {
                 Authorization: 'Bearer ' + localStorage.getItem('token'), // Use token for admin authentication
