@@ -37,14 +37,15 @@
       .container {
         max-width: 800px;
         background-color: #fff;
-        padding: 40px;
+        padding: 40px 20px;
         border-radius: 8px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       }
 
       h2 {
-        font-size: 2rem;
+        font-size: 1.8rem;
         color: #343a40;
+        text-align: center;
       }
 
       .badge {
@@ -82,9 +83,15 @@
         color: #721c24;
       }
 
-      .alert-center {
-        text-align: center;
-        font-size: 1.1rem;
+      /* Additional styling for mobile */
+      @media (max-width: 576px) {
+        h2 {
+          font-size: 1.5rem;
+        }
+
+        .btn {
+          font-size: 1rem;
+        }
       }
     </style>
   </head>
@@ -105,7 +112,6 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav ms-auto">
-            <!-- Navbar items -->
             <li class="nav-item">
               <a class="nav-link" href="/login.html">Login</a>
             </li>
@@ -133,7 +139,7 @@
     </nav>
 
     <div class="container mt-5">
-      <h2 class="mb-4 text-center fw-bold">
+      <h2 class="mb-4 fw-bold">
         <span class="d-inline-flex align-items-center">
           <i
             class="bi bi-bookmark-check-fill me-2"
@@ -169,13 +175,12 @@
         </div>
         <div class="mb-3">
           <label for="bookType" class="form-label">
-            Book Type (1- Available for up to 10 days. 2- Available for up to 5
-            days. 3- Available for up to 2 days.)
+            Book Type
           </label>
           <select class="form-select" id="bookType" required>
-            <option value="1">Type 1</option>
-            <option value="2">Type 2</option>
-            <option value="3">Type 3</option>
+            <option value="1">Type 1 (10 days)</option>
+            <option value="2">Type 2 (5 days)</option>
+            <option value="3">Type 3 (2 days)</option>
           </select>
         </div>
         <div class="mb-3 form-check">
@@ -214,15 +219,14 @@
 
     <script>
       async function addBook(event) {
-        event.preventDefault() // Prevent form submission
+        event.preventDefault();
 
-        const successMessage = document.getElementById('successMessage')
-        const errorMessage = document.getElementById('errorMessage')
+        const successMessage = document.getElementById('successMessage');
+        const errorMessage = document.getElementById('errorMessage');
         const notAuthorizedMessage = document.getElementById(
           'notAuthorizedMessage'
-        )
+        );
 
-        // Collect form data
         const bookData = {
           title: document.getElementById('title').value,
           author: document.getElementById('author').value,
@@ -230,10 +234,9 @@
           published_year: document.getElementById('publishedYear').value,
           book_type: document.getElementById('bookType').value,
           isActive: document.getElementById('isActive').checked,
-        }
+        };
 
         try {
-          // Send POST request to add book
           const response = await axios.post(
             'https://library-django-backend-project.onrender.com/loans/add_book',
             bookData,
@@ -242,36 +245,37 @@
                 Authorization: 'Bearer ' + localStorage.getItem('token'),
               },
             }
-          )
+          );
 
-          // Display success message and reset form
-          successMessage.textContent = 'Book added successfully!'
-          successMessage.style.display = 'block'
-          errorMessage.style.display = 'none'
-          notAuthorizedMessage.style.display = 'none'
-          document.getElementById('addBookForm').reset()
-          // Redirect to index.html after a brief delay
+          successMessage.textContent = 'Book added successfully!';
+          successMessage.style.display = 'block';
+          errorMessage.style.display = 'none';
+          notAuthorizedMessage.style.display = 'none';
+          document.getElementById('addBookForm').reset();
+
           setTimeout(() => {
-            window.location.href = '/index.html'
-          }, 1500)
+            window.location.href = '/index.html';
+          }, 1500);
         } catch (error) {
-          // Show "Not Authorized" message if the user is not an admin
           if (error.response && error.response.status === 401) {
-            notAuthorizedMessage.style.display = 'block'
-            document.getElementById('addBookForm').style.display = 'none'
-            successMessage.style.display = 'none'
-            errorMessage.style.display = 'none'
+            notAuthorizedMessage.style.display = 'block';
+            document.getElementById('addBookForm').style.display = 'none';
+            successMessage.style.display = 'none';
+            errorMessage.style.display = 'none';
           } else {
-            console.error('Error adding book:', error)
+            console.error('Error adding book:', error);
             errorMessage.textContent =
               error.response?.data?.error ||
-              'An error occurred while adding the book.'
-            errorMessage.style.display = 'block'
-            successMessage.style.display = 'none'
-            notAuthorizedMessage.style.display = 'none'
+              'An error occurred while adding the book.';
+            errorMessage.style.display = 'block';
+            successMessage.style.display = 'none';
+            notAuthorizedMessage.style.display = 'none';
           }
         }
       }
     </script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+    ></script>
   </body>
 </html>
