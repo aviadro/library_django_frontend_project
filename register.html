@@ -183,17 +183,20 @@
 
         // Handle successful registration
         if (response.status === 201) {
-          responseMessage.innerHTML = `<div class="alert alert-success">${response.data.message}</div>`
-          document.getElementById('registerForm').reset() // Reset the form
-        }
+      responseMessage.innerHTML = `<div class="alert alert-success">${response.data.message}</div>`;
+      document.getElementById('registerForm').reset(); // Reset the form
+
+      // Redirect to index.html after 1 second
+      setTimeout(() => {
+        window.location.href = '/index.html';
+      }, 1000); // Adjust the delay as needed
+    }
       } catch (error) {
         // Handle error responses
         let errorMessage = 'An error occurred while registering the user.'
         if (error.response && error.response.data.error) {
           errorMessage = error.response.data.error
-        } else if (error.response && error.response.status === 403) {
-          errorMessage = 'You are not authorized to perform this action.'
-        }
+        } 
         responseMessage.innerHTML = `<div class="alert alert-danger">${errorMessage}</div>`
       }
     }
