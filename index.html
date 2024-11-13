@@ -41,7 +41,7 @@
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav ml-auto">
+          <ul class="navbar-nav ms-auto">
             <!-- Navbar items -->
             <li class="nav-item">
               <a class="nav-link" href="/login.html">Login</a>
@@ -98,6 +98,7 @@
       </div>
       
       <!-- Table for displaying books -->
+      <div class="table-responsive">
       <table class="table table-striped" id="booksTable">
         <thead class="table-dark">
           <tr>
@@ -114,6 +115,8 @@
           <!-- Book rows will be populated here -->
         </tbody>
       </table>
+    </div>
+
 
 <!-- Section for displaying late loans if any -->
 <div id="adminLateLoansSection" class="d-none">
@@ -389,5 +392,6 @@
       // Call init on page load
       init()
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   </body>
 </html>
