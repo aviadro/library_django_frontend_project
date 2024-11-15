@@ -156,17 +156,35 @@
     }
 
     function populateBookOptions(books) {
-      const bookSelect = document.getElementById('bookTitle');
-      bookSelect.innerHTML = '<option selected disabled>Choose a book</option>';
-      books.forEach((book) => {
-        if (book.isActive) {
-          const option = document.createElement('option');
-          option.value = book.id;
-          option.textContent = book.title;
-          bookSelect.appendChild(option);
-        }
-      });
+  const bookSelect = document.getElementById('bookTitle');
+  bookSelect.innerHTML = '<option selected disabled>Choose a book</option>';
+  books.forEach((book) => {
+    if (book.isActive) {
+      const option = document.createElement('option');
+      option.value = book.id;
+
+      // Determine loan duration based on the book type
+      let loanDuration;
+      switch (book.type) {
+        case 1:
+          loanDuration = 'up to 10 days';
+          break;
+        case 2:
+          loanDuration = 'up to 5 days';
+          break;
+        case 3:
+          loanDuration = 'up to 2 days';
+          break;
+        default:
+          loanDuration = 'unknown duration'; // Fallback for unexpected book types
+      }
+
+      option.textContent = `${book.title} (${loanDuration})`;
+      bookSelect.appendChild(option);
     }
+  });
+}
+
 
     function populateLoanedBooksOptions(activeLoans) {
       const loanedBookSelect = document.getElementById('loanedBookTitle');
