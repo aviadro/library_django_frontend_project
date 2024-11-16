@@ -128,7 +128,7 @@
             // Populate book details
             document.getElementById(
               'book-image'
-            ).src = `https://library-django-backend-project.onrender.com/static/images/${book.image || 'placeholder.png'}`;
+            ).src = `https://library-django-backend-project.onrender.com/static/${book.image || 'placeholder.png'}`;
             document.getElementById('book-title').textContent = book.title;
             document.getElementById(
               'book-author'
